@@ -2,6 +2,7 @@ package db
 
 import (
 	"news-feed/internal/user"
+	"news-feed/internal/post"
 
 	"log"
 
@@ -18,7 +19,8 @@ func InitDatabase() *gorm.DB {
 		log.Fatal("Failed to connect to database:", err)
 	}
 
-	err = db.AutoMigrate(&user.User{})
+	err = db.AutoMigrate(&user.User{}, &post.Post{})
+
 	if err != nil {
 		log.Fatal("Failed to auto-migrate:", err)
 	}
