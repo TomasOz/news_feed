@@ -4,6 +4,8 @@ import (
 
 	"news-feed/internal/user"
 	"news-feed/internal/post"
+	"news-feed/internal/follow"
+
 	"news-feed/internal/db"
 	"news-feed/internal/auth"
 	"github.com/gin-gonic/gin"
@@ -31,6 +33,17 @@ func main() {
 	//Temporary for receiving all posts
 	router.GET("/posts", auth.AuthMiddleware(), postHandler.GetPosts)
 	router.POST("/posts", auth.AuthMiddleware(), postHandler.CreatePost)
+
+
+	followRepo := follow.NewFollowRepository(dbConn)
+	followService := follow.NewFollowService(followRepo)
+	followHandler := follow.NewFollowHandler(followService)
+
+	// Users that following current user
+	router.POST("/follow/:id", auth.AuthMiddleware(), followHandler.Follow)
+	// What current user is following
+	router.POST("/unfollow/:id", auth.AuthMiddleware(), followHandler.UnFollow)
+
 
 	log.Println("Lets Start Application")
 	router.Run(":8080")
