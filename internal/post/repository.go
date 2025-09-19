@@ -8,6 +8,7 @@ type PostRepository interface {
 	GetPostByID(id uint) (*Post, error)
 	Create(userID uint, title, body string) (*Post, error)
 	GetPosts() (*[]Post, error)
+	GetPostsByUserID(followeesID []uint) ([]Post, error)
 
 // 	Update(user *User) error
 // 	Delete(id uint) error
@@ -39,6 +40,18 @@ func (r *GormPostRepository) GetPosts() (*[]Post, error) {
 	}
 
 	return &posts, nil
+}
+
+func (r *GormPostRepository) GetPostsByUserID(followeesID []uint) ([]Post, error) {
+	var posts []Post
+
+	err := r.db.Where("user_id = ?", followeesID).Find(&posts).Error
+
+	if err != nil {
+		return nil, err
+	} 
+
+	return posts, nil
 }
 
 func (r *GormPostRepository) Create(userID uint, title, body string) (*Post, error) {

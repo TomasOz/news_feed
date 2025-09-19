@@ -9,6 +9,7 @@ type FollowRepository interface {
 	Follow(follower_id, followee_id uint) (error)
 	UnFollow(follower_id, followee_id uint) (error)
 	AlreadyFollowing(follower_id, followee_id uint) (bool)
+	GetFolloweesID(follower_id uint) ([]uint, error)
 }
 
 type GormFollowRepository struct {
@@ -48,4 +49,19 @@ func (r *GormFollowRepository) AlreadyFollowing(follower_id, followee_id uint) (
 
 	}
 	return true
+}
+
+func (r *GormFollowRepository) GetFolloweesID(follower_id uint) ([]uint, error) {
+	var falloweesIds []uint
+	
+	err := r.db.Model(&UserFollows{}).
+		Where("follower_id = ? ", follower_id).
+		Pluck("followee_id", &falloweesIds).Error
+
+	if err != nil {
+		return nil, err
+	} 
+
+	
+	return falloweesIds, nil
 }
