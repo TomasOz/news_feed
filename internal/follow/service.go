@@ -22,13 +22,17 @@ func (p DefaultFollowService) Follow(follower_id, followee_id uint) (error) {
 		return errors.New("you can not follow yourself")
 	}
 
-	alreadyFollowing := p.repo.AlreadyFollowing(follower_id, followee_id)
+	alreadyFollowing, err := p.repo.AlreadyFollowing(follower_id, followee_id)
 	
+	if err != nil {
+		return err
+	}
+
 	if alreadyFollowing {
 		return errors.New("you already follow user")
 	}
 	
-	err := p.repo.Follow(follower_id, followee_id)
+	err = p.repo.Follow(follower_id, followee_id)
 
 	if err != nil {
 		return err

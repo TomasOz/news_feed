@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"github.com/gin-gonic/gin"
 
+	"strconv"
 )
 
 type FeedHandler struct {
@@ -29,12 +30,25 @@ func (h *FeedHandler) GetFeed(c *gin.Context) {
 		return
 	}
 
-	posts, err := h.service.GetFeed(userID)
+	limit := 10
+
+	if l := c.Query("limit"); l != "" {
+		if n, err := strconv.Atoi(l); err == nil && n > 0 && n <= 100 {
+			limit = n
+		}
+	}
+	
+	cursor := c.Query("cursor")
+
+	posts, nextCursor, err := h.service.GetFeed(userID, limit, cursor)
 	
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"posts": posts})
+	c.JSON(http.StatusOK, gin.H{
+		"posts": posts,
+		"next_cursor": nextCursor,
+	})
 } 

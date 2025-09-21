@@ -8,7 +8,7 @@ import (
 type FollowRepository interface {
 	Follow(follower_id, followee_id uint) (error)
 	UnFollow(follower_id, followee_id uint) (error)
-	AlreadyFollowing(follower_id, followee_id uint) (bool)
+	AlreadyFollowing(follower_id, followee_id uint) (bool, error)
 	GetFolloweesID(follower_id uint) ([]uint, error)
 }
 
@@ -41,27 +41,27 @@ func (r *GormFollowRepository) UnFollow(follower_id, followee_id uint) (error) {
 	return nil
 }
 
-func (r *GormFollowRepository) AlreadyFollowing(follower_id, followee_id uint) (bool) {
+func (r *GormFollowRepository) AlreadyFollowing(follower_id, followee_id uint) (bool, error) {
 	if err := r.db.Where("follower_id = ? AND followee_id = ?", follower_id, followee_id).First(&UserFollows{}).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return false
+			return false, nil
 		}
 
 	}
-	return true
+	return true, nil
 }
 
 func (r *GormFollowRepository) GetFolloweesID(follower_id uint) ([]uint, error) {
-	var falloweesIds []uint
+	var followeesIds []uint
 	
 	err := r.db.Model(&UserFollows{}).
 		Where("follower_id = ? ", follower_id).
-		Pluck("followee_id", &falloweesIds).Error
+		Pluck("followee_id", &followeesIds).Error
 
 	if err != nil {
 		return nil, err
 	} 
 
 	
-	return falloweesIds, nil
+	return followeesIds, nil
 }

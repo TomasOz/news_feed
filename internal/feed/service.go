@@ -2,13 +2,17 @@ package feed
 
 import (
 	"errors"
+	"strconv"
+	"strings"
+	"fmt"
+	"time"
 
 	"news-feed/internal/post"
 	"news-feed/internal/follow"
 )
 
 type FeedService interface {
-	GetFeed(userID uint) ([]post.Post, error)
+	GetFeed(userID uint, limit int, cursor string) ([]post.Post, string, error)
 }
 
 type DefaultFeedService struct {
@@ -23,18 +27,37 @@ func NewFeedService(followRepo follow.FollowRepository, postRepo post.PostReposi
 	}
 }
 
-func (s *DefaultFeedService) GetFeed(userID uint) ([]post.Post, error) {
+func (s *DefaultFeedService) GetFeed(userID uint, limit int, cursor string) ([]post.Post, string, error) {
 	followeesID, err := s.followRepo.GetFolloweesID(userID)
 
 	if len(followeesID) == 0 {
-		return []post.Post{}, nil
+		return []post.Post{},  "", nil
 	}
 
 	if err != nil {
-		return nil, errors.New("Internal Error")
+		return nil, "", errors.New("Internal Error")
 	}
 
-	feed, err := s.postRepo.GetPostsByUserID(followeesID)
+    var createdAt time.Time
+    var lastID uint
+    if cursor != "" {
+		parts := strings.Split(cursor, ",")
+		createdAt, _ = time.Parse(time.RFC3339, parts[0])
+		u64, _ := strconv.ParseUint(parts[1], 10, 64)
+		lastID = uint(u64)
+    }
 
-	return feed, nil
+	feed, err := s.postRepo.GetPostsByUserID(followeesID, limit, createdAt, lastID)
+
+	if err != nil {
+        return nil, "", err
+    }
+
+    var nextCursor string
+    if len(feed) == limit {
+        last := feed[len(feed)-1]
+        nextCursor = fmt.Sprintf("%s,%d", last.CreatedAt.Format(time.RFC3339), last.ID)
+    }
+
+    return feed, nextCursor, nil
 }

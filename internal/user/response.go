@@ -1,7 +1,7 @@
 package user
 
 type UserResponse struct {
-	Username string `json: "username"`
+	Username string `json:"username"`
 }
 
 func mapUserToResponse(user *User) UserResponse {

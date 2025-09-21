@@ -15,42 +15,43 @@ func NewFollowHandler(service FollowService) *FollowHandler {
 }
 
 func (h *FollowHandler) Follow(c *gin.Context) {
-	user_id := c.Param("id")
+	userId := c.Param("id")
 
-    idUint64, err := strconv.ParseUint(user_id, 10, 64)
+    idUint64, err := strconv.ParseUint(userId, 10, 64)
     if err != nil {
-        c.JSON(400, gin.H{"error": "Invalid ID"})
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
         return
     }
 
-    followee_id := uint(idUint64)
+    followeeId := uint(idUint64)
 
 	userIDValue, exists := c.Get("ID")
 	if !exists{
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
 	}
 
-	follower_id, ok := userIDValue.(uint)
+	followerId, ok := userIDValue.(uint)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid user id in token"})
         return
 	}
 
-	error := h.service.Follow(follower_id, followee_id)
-	if error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": error.Error()})
+	err = h.service.Follow(followerId, followeeId)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"You start following:": user_id})
+	c.JSON(http.StatusOK, gin.H{"You start following:": userId})
 }
 
 func (h *FollowHandler) UnFollow(c *gin.Context) {
-	user_id := c.Param("id")
+	userId := c.Param("id")
 
-    idUint64, err := strconv.ParseUint(user_id, 10, 64)
+    idUint64, err := strconv.ParseUint(userId, 10, 64)
     if err != nil {
-        c.JSON(400, gin.H{"error": "Invalid ID"})
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
         return
     }
 
@@ -59,6 +60,7 @@ func (h *FollowHandler) UnFollow(c *gin.Context) {
 	userIDValue, exists := c.Get("ID")
 	if !exists{
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
 	}
 
 	follower_id, ok := userIDValue.(uint)
@@ -67,11 +69,11 @@ func (h *FollowHandler) UnFollow(c *gin.Context) {
         return
 	}
 
-	error := h.service.UnFollow(follower_id, followee_id)
+	err = h.service.UnFollow(follower_id, followee_id)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": error.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"You unfollowed:": user_id})
+	c.JSON(http.StatusOK, gin.H{"You unfollowed:": userId})
 }

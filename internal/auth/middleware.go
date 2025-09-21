@@ -1,7 +1,6 @@
 package auth
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
 	"github.com/gin-gonic/gin"
@@ -24,8 +23,6 @@ func AuthMiddleware() gin.HandlerFunc {
 		}
 
 		tokenString := parts[1]
-
-		fmt.Println(tokenString)
 
 		claims, err := ValidateJWT(tokenString)
 		if err != nil {

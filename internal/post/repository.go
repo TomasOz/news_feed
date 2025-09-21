@@ -2,13 +2,15 @@ package post
 
 import (
 	"gorm.io/gorm"
+
+	"time"
 )
 
 type PostRepository interface {
 	GetPostByID(id uint) (*Post, error)
 	Create(userID uint, title, body string) (*Post, error)
 	GetPosts() (*[]Post, error)
-	GetPostsByUserID(followeesID []uint) ([]Post, error)
+	GetPostsByUserID(followeesID []uint, limit int, cursorCreatedAt time.Time, cursorID uint) ([]Post, error)
 
 // 	Update(user *User) error
 // 	Delete(id uint) error
@@ -42,15 +44,32 @@ func (r *GormPostRepository) GetPosts() (*[]Post, error) {
 	return &posts, nil
 }
 
-func (r *GormPostRepository) GetPostsByUserID(followeesID []uint) ([]Post, error) {
+func (r *GormPostRepository) GetPostsByUserID(
+    followeesID []uint, 
+    limit int, 
+    cursorCreatedAt time.Time, 
+    cursorID uint,
+) ([]Post, error) {
 	var posts []Post
 
-	err := r.db.Where("user_id = ?", followeesID).Find(&posts).Error
-
+	query := r.db.
+		Where("user_id IN ?", followeesID)
+	
+	if !cursorCreatedAt.IsZero() && cursorID != 0 {
+		query = query.
+			Where("(created_at < ?) OR (created_at = ? AND id < ?)",
+				cursorCreatedAt, cursorCreatedAt, cursorID)
+	}
+	
+	err := query.
+		Order("created_at DESC, id DESC").
+		Limit(limit).
+		Preload("User").
+		Find(&posts).Error
+	
 	if err != nil {
 		return nil, err
-	} 
-
+	}
 	return posts, nil
 }
 

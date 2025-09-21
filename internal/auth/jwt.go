@@ -4,9 +4,10 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"os"
 )
 
-var jwtKey = []byte("your_secret_key") // You can load from ENV later for security
+var jwtKey = []byte(os.Getenv("JWT_SECRET")) // You can load from ENV later for security
 
 type Claims struct {
 	ID uint `json:"username"`

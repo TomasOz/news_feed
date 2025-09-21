@@ -53,6 +53,7 @@ func (h *PostHandler) CreatePost(c *gin.Context) {
 	userIDValue, exists := c.Get("ID")
 	if !exists{
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
 	}
 
 	userID, ok := userIDValue.(uint)
