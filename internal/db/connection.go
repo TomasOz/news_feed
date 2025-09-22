@@ -1,30 +1,38 @@
 package db
 
 import (
-	"news-feed/internal/user"
-	"news-feed/internal/post"
-	"news-feed/internal/follow"
+    "log"
+    "os"
+    "time"
 
-	"log"
+    "gorm.io/driver/mysql"
+    "gorm.io/gorm"
 
-	"gorm.io/driver/sqlite"
-	"gorm.io/gorm"
+    "news-feed/internal/user"
+    "news-feed/internal/post"
+    "news-feed/internal/follow"
 )
 
-var DB *gorm.DB
-
-
 func InitDatabase() *gorm.DB {
-	db, err := gorm.Open(sqlite.Open("app.db"), &gorm.Config{})
+    dsn := os.Getenv("DB_URL")
+
+    var db *gorm.DB
+    var err error
+
+	for i := 1; i <= 30; i++ {
+		db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
+		if err == nil {
+			break
+		}
+		time.Sleep(2 * time.Second)
+	}
 	if err != nil {
-		log.Fatal("Failed to connect to database:", err)
+		log.Fatal("Failed to connect MySQL after retries:", err)
 	}
 
-	err = db.AutoMigrate(&user.User{}, &post.Post{}, &follow.UserFollows{})
+    if err = db.AutoMigrate(&user.User{}, &post.Post{}, &follow.UserFollows{}); err != nil {
+        log.Fatal("Failed to auto-migrate:", err)
+    }
 
-	if err != nil {
-		log.Fatal("Failed to auto-migrate:", err)
-	}
-
-	return db
+    return db
 }
