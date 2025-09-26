@@ -14,6 +14,19 @@ func NewFollowHandler(service FollowService) *FollowHandler {
 	return &FollowHandler{service: service}
 }
 
+// Follow godoc
+// @Summary     Follow another user
+// @Description Authenticated user follows onether user
+// @Tags        follow
+// @Security    BearerAuth
+// @Accept      json
+// @Produce     json
+// @Param       id   path      int  true  "ID of the user to follow"
+// @Success     200     {json} error {"You start following:":"123"}  
+// @Failure     400     {json} error {"error":"Invalid ID"}
+// @Failure     401     {json} error {"error":"Unauthorized"}
+// @Failure     500     {json} error {"error":"Invalid user id in token"}
+// @Router      /follow [get]
 func (h *FollowHandler) Follow(c *gin.Context) {
 	userId := c.Param("id")
 

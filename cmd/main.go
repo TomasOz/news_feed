@@ -1,6 +1,25 @@
+// @title           News Feed API
+// @version         1.0
+// @description     News feed API (learning project).
+// @contact.name    Tomas Ozolinsius
+// @contact.url     https://github.com/TomasOz
+// @BasePath        /
+
+// Security: JWT via Authorization: Bearer <token>
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+
 package main
 
 import (
+	"log"
+
+	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
+
+	"news-feed/cmd/docs"
 
 	"news-feed/internal/user"
 	"news-feed/internal/post"
@@ -9,12 +28,11 @@ import (
 
 	"news-feed/internal/db"
 	"news-feed/internal/auth"
-	"github.com/gin-gonic/gin"
-
-	"log"
 )
 
 func main() {
+	docs.SwaggerInfo.BasePath = "/"
+
 	router := gin.Default()
 
 	dbConn := db.InitDatabase()
@@ -52,6 +70,10 @@ func main() {
 	feedHandler := feed.NewFeedHandler(feedService)
 
 	router.GET("/feed", auth.AuthMiddleware(), feedHandler.GetFeed)
+
+	// SWAGGER ===================================
+
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	log.Println("Lets Start Application")
 	router.Run(":8080")

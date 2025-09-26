@@ -1,0 +1,236 @@
+basePath: /
+definitions:
+  gorm.DeletedAt:
+    properties:
+      time:
+        type: string
+      valid:
+        description: Valid is true if Time is not NULL
+        type: boolean
+    type: object
+  internal_feed.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  internal_feed.FeedResponse:
+    properties:
+      next_cursor:
+        type: string
+      posts:
+        items:
+          $ref: '#/definitions/news-feed_internal_post.Post'
+        type: array
+    type: object
+  internal_user.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  internal_user.TokenResponse:
+    properties:
+      token:
+        type: string
+    type: object
+  internal_user.UserInput:
+    properties:
+      password:
+        maxLength: 100
+        minLength: 3
+        type: string
+      username:
+        maxLength: 100
+        minLength: 3
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  internal_user.UserResponse:
+    properties:
+      username:
+        type: string
+    type: object
+  news-feed_internal_post.Post:
+    properties:
+      body:
+        type: string
+      createdAt:
+        type: string
+      deletedAt:
+        $ref: '#/definitions/gorm.DeletedAt'
+      id:
+        type: integer
+      title:
+        type: string
+      updatedAt:
+        type: string
+      user:
+        $ref: '#/definitions/news-feed_internal_user.User'
+      user_id:
+        type: integer
+    type: object
+  news-feed_internal_user.User:
+    properties:
+      createdAt:
+        type: string
+      deletedAt:
+        $ref: '#/definitions/gorm.DeletedAt'
+      id:
+        type: integer
+      updatedAt:
+        type: string
+      username:
+        type: string
+    type: object
+info:
+  contact:
+    name: Tomas Ozolinsius
+    url: https://github.com/TomasOz
+  description: News feed API (learning project).
+  title: News Feed API
+  version: "1.0"
+paths:
+  /feed:
+    get:
+      consumes:
+      - application/json
+      description: Returns the authenticated user's feed with optional limit and cursor.
+      parameters:
+      - default: 10
+        description: Max posts to return
+        in: query
+        maximum: 100
+        minimum: 1
+        name: limit
+        type: integer
+      - description: Cursor for next page
+        in: query
+        name: cursor
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_feed.FeedResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/internal_feed.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/internal_feed.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_feed.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get user feed
+      tags:
+      - feed
+  /follow:
+    get:
+      consumes:
+      - application/json
+      description: Authenticated user follows onether user
+      parameters:
+      - description: ID of the user to follow
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: You start following:":"123"}
+          schema:
+            type: json
+        "400":
+          description: error":"Invalid ID"}
+          schema:
+            type: json
+        "401":
+          description: error":"Unauthorized"}
+          schema:
+            type: json
+        "500":
+          description: error":"Invalid user id in token"}
+          schema:
+            type: json
+      security:
+      - BearerAuth: []
+      summary: Follow another user
+      tags:
+      - follow
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate a user with username/password and receive a JWT.
+      parameters:
+      - description: Credentials
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/internal_user.UserInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_user.TokenResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/internal_user.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/internal_user.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_user.ErrorResponse'
+      summary: Login
+      tags:
+      - auth
+  /register:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: User credentials
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/internal_user.UserInput'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/internal_user.UserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Register a user
+      tags:
+      - auth
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

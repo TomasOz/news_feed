@@ -1,9 +1,2 @@
 .env
-.env.*
-
-
-# --- Editors & OS junk ---
-.idea/
-.vscode/
-.DS_Store
-Thumbs.db
+.db

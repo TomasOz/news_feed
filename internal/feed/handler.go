@@ -15,6 +15,21 @@ func NewFeedHandler(service FeedService) *FeedHandler {
 	return &FeedHandler{service: service}
 }
 
+
+// GetFeed godoc
+// @Summary     Get user feed
+// @Description Returns the authenticated user's feed with optional limit and cursor.
+// @Tags        feed
+// @Security    BearerAuth
+// @Accept      json
+// @Produce     json
+// @Param       limit   query     int    false  "Max posts to return" minimum(1) maximum(100) default(10)
+// @Param       cursor  query     string false  "Cursor for next page"
+// @Success     200     {object}  FeedResponse
+// @Failure     400     {object}  ErrorResponse
+// @Failure     401     {object}  ErrorResponse
+// @Failure     500     {object}  ErrorResponse
+// @Router      /feed [get]
 func (h *FeedHandler) GetFeed(c *gin.Context) {
 	currentUserID, exists := c.Get("ID")
 

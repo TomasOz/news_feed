@@ -31,26 +31,36 @@ I will use a stack that I’m not familiar with in my daily work.
 - MySQL server local or remote 
 
 ```bash
-    go run cmd/main.go
+go run cmd/main.go
 ```
 
 ### Run with Docker
 
 ```bash
-    docker compose up 
+docker compose up 
 ```
 
 ### Environment Variables
 
 ```bash
-    MYSQL_ROOT_PASSWORD=yourpassword
-    MYSQL_DATABASE=newsfeed
-    DB_URL=root:changeme@tcp(db:3306)/newsfeed?parseTime=true
-    JWT_SECRET=your_super_secret_key
+MYSQL_ROOT_PASSWORD=yourpassword
+MYSQL_DATABASE=newsfeed
+DB_URL=root:changeme@tcp(db:3306)/newsfeed?parseTime=true
+JWT_SECRET=your_super_secret_key
 ```
 
 App will be available at
 http://localhost:8080
+
+## Docs (Swagger)
+
+Project already delivers generated docs, but in case of regenerating doc run
+```bash
+swag init -g cmd/main.go -o cmd/docs --parseDependency --parseInternal
+```
+
+Docs available at 
+http://localhost:8080/swagger/index.html
 
 
 ## Future Plans
