@@ -8,9 +8,7 @@ import (
     "gorm.io/driver/mysql"
     "gorm.io/gorm"
 
-    "news-feed/internal/user"
-    "news-feed/internal/post"
-    "news-feed/internal/follow"
+    "news-feed/migrations/migration"
 )
 
 func InitDatabase() *gorm.DB {
@@ -30,8 +28,17 @@ func InitDatabase() *gorm.DB {
 		log.Fatal("Failed to connect MySQL after retries:", err)
 	}
 
-    if err = db.AutoMigrate(&user.User{}, &post.Post{}, &follow.UserFollows{}); err != nil {
-        log.Fatal("Failed to auto-migrate:", err)
+    // if err = db.AutoMigrate(&user.User{}, &post.Post{}, &follow.UserFollows{}); err != nil {
+    //     log.Fatal("Failed to auto-migrate:", err)
+    // }
+
+    sqlDB, err := db.DB()
+    if err != nil {
+        log.Fatal("Failed to get sql.DB:", err)
+    }
+
+    if err := migration.RunMigrations(sqlDB, "./migrations"); err != nil {
+        log.Fatal("Failed to run migrations:", err)
     }
 
     return db

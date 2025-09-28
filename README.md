@@ -18,6 +18,7 @@ I will use a stack that I’m not familiar with in my daily work.
 - **Web framework:** Gin
 - **ORM:** GORM  
 - **Database:** MySQL
+- **Database Migrations:** golang-migrate
 - **Auth:** JWT  
 - **Containerization:** Docker & Docker Compose
 
@@ -34,7 +35,7 @@ I will use a stack that I’m not familiar with in my daily work.
 go run cmd/main.go
 ```
 
-### Run with Docker
+### Run with Dockergit
 
 ```bash
 docker compose up 
