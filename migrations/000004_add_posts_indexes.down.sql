@@ -1,0 +1,1 @@
+DROP INDEX IF EXISTS idx_posts_users_created_at ON posts

@@ -1,0 +1,1 @@
+CREATE INDEX idx_user_folowers_followee_followers ON user_follows (followee_id, follower_id)

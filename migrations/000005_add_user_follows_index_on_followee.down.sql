@@ -1,0 +1,1 @@
+DROP INDEX IF EXISTS idx_user_followers_followee_followers ON user_follows

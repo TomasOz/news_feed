@@ -5,13 +5,24 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"os"
+	"log"
 )
 
-var jwtKey = []byte(os.Getenv("JWT_SECRET")) // You can load from ENV later for security
+var jwtKey []byte // You can load from ENV later for security
 
 type Claims struct {
 	ID uint `json:"username"`
 	jwt.RegisteredClaims
+}
+
+func init() {
+	jwtKey = []byte(os.Getenv("JWT_SECRET"))
+
+	if len(jwtKey) == 0 {
+		jwtKey = []byte("default_jwt_key")
+		log.Println("Warning: it is not goo idea to use default JWT key")
+	}
+
 }
 
 // GenerateJWT creates a new JWT token for a given username
