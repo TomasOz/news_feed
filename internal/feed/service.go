@@ -3,61 +3,111 @@ package feed
 import (
 	"errors"
 	"strconv"
-	"strings"
-	"fmt"
-	"time"
+	"context"
 
 	"news-feed/internal/post"
 	"news-feed/internal/follow"
+	"news-feed/internal/cache"
 )
 
 type FeedService interface {
-	GetFeed(userID uint, limit int, cursor string) ([]post.Post, string, error)
+	GetFeed(userID uint, limit, offset int) ([]post.Post,  error)
 }
 
 type DefaultFeedService struct {
 	followRepo follow.FollowRepository
 	postRepo   post.PostRepository
+	cache 	   *cache.RedisCache
 }
 
-func NewFeedService(followRepo follow.FollowRepository, postRepo post.PostRepository) FeedService {
+func NewFeedService(followRepo follow.FollowRepository, postRepo post.PostRepository, cache *cache.RedisCache) FeedService {
 	return &DefaultFeedService{
 		followRepo: followRepo, 
 		postRepo: postRepo,
+		cache: cache,
 	}
 }
 
-func (s *DefaultFeedService) GetFeed(userID uint, limit int, cursor string) ([]post.Post, string, error) {
-	followeesID, err := s.followRepo.GetFolloweesID(userID)
+func (s *DefaultFeedService) GetFeed(userID uint, limit, offset int) ([]post.Post, error) {
+	ctx := context.Background()
+	
+	// Lets take post ids from cache first
+	postIDs, err := s.getPostIDsFromCache(ctx, userID, limit, offset)
 
-	if len(followeesID) == 0 {
-		return []post.Post{},  "", nil
+	if err != nil || len(postIDs) == 0 {
+		feed, err := s.GetFeedFromDatabase(userID, limit, offset)
+		s.addFeedToCache(ctx, userID, feed)
+
+		return feed, err
 	}
+	
+	var postIDsUint []uint
+	for _, idStr := range postIDs {
+		if id, err := strconv.ParseUint(idStr, 10, 32); err == nil {
+			postIDsUint = append(postIDsUint, uint(id))
+		}
+	}
+	
+	posts, err := s.postRepo.GetPostsByIDs(postIDsUint)
 
 	if err != nil {
-		return nil, "", errors.New("Internal Error")
+		return s.GetFeedFromDatabase(userID, limit, offset)
+	}
+	
+	return posts, nil
+}
+
+func (s *DefaultFeedService) getPostIDsFromCache (ctx context.Context, userID uint, limit, offset int) ([]string, error) {
+	feedKey := cache.FeedKey(userID)
+	
+	//By default Offset is 10
+	start := int64(offset)
+	end := start + int64(limit) - 1
+	
+	postIDs, err := s.cache.LRange(ctx, feedKey, start, end)
+	if err != nil {
+		return nil, err
+	}
+	
+	return postIDs, nil
+}
+
+func (s *DefaultFeedService) addFeedToCache (ctx context.Context, userID uint, posts []post.Post) (error) {
+	feedKey := cache.FeedKey(userID)
+
+	if len(posts) == 0 {
+		return nil
+	}	
+
+	values := make([]any, len(posts))
+	for i, p := range posts {
+		values[i] = p.ID
 	}
 
-    var createdAt time.Time
-    var lastID uint
-    if cursor != "" {
-		parts := strings.Split(cursor, ",")
-		createdAt, _ = time.Parse(time.RFC3339, parts[0])
-		u64, _ := strconv.ParseUint(parts[1], 10, 64)
-		lastID = uint(u64)
-    }
+	if err := s.cache.LPush(ctx, feedKey, values); err != nil {
+		return err
+	}
 
-	feed, err := s.postRepo.GetPostsByUserID(followeesID, limit, createdAt, lastID)
+	return nil
+}
 
-	if err != nil {
-        return nil, "", err
-    }
 
-    var nextCursor string
-    if len(feed) == limit {
-        last := feed[len(feed)-1]
-        nextCursor = fmt.Sprintf("%s,%d", last.CreatedAt.Format(time.RFC3339), last.ID)
-    }
+func (s *DefaultFeedService) GetFeedFromDatabase(userID uint, limit, offset int) ([]post.Post, error) {
+		followeesID, err := s.followRepo.GetFolloweesID(userID)
 
-    return feed, nextCursor, nil
+		if len(followeesID) == 0 {
+			return []post.Post{}, nil
+		}
+	
+		if err != nil {
+			return nil, errors.New("Internal Error")
+		}
+		
+		feed, err := s.postRepo.GetPostsByUserID(followeesID, limit, offset)
+	
+		if err != nil {
+			return nil, err
+		}
+	
+		return feed, nil
 }

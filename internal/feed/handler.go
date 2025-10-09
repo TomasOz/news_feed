@@ -18,13 +18,13 @@ func NewFeedHandler(service FeedService) *FeedHandler {
 
 // GetFeed godoc
 // @Summary     Get user feed
-// @Description Returns the authenticated user's feed with optional limit and cursor.
+// @Description Returns the authenticated user's feed with optional limit and offset pagination.
 // @Tags        feed
 // @Security    BearerAuth
 // @Accept      json
 // @Produce     json
 // @Param       limit   query     int    false  "Max posts to return" minimum(1) maximum(100) default(10)
-// @Param       cursor  query     string false  "Cursor for next page"
+// @Param       offset  query     int    false  "Number of posts to skip" minimum(0) default(0)
 // @Success     200     {object}  FeedResponse
 // @Failure     400     {object}  ErrorResponse
 // @Failure     401     {object}  ErrorResponse
@@ -46,24 +46,27 @@ func (h *FeedHandler) GetFeed(c *gin.Context) {
 	}
 
 	limit := 10
-
 	if l := c.Query("limit"); l != "" {
 		if n, err := strconv.Atoi(l); err == nil && n > 0 && n <= 100 {
 			limit = n
 		}
 	}
 	
-	cursor := c.Query("cursor")
+	offset := 0
+	if o := c.Query("offset"); o != "" {
+		if n, err := strconv.Atoi(o); err == nil && n >= 0 {
+			offset = n
+		}
+	}
 
-	posts, nextCursor, err := h.service.GetFeed(userID, limit, cursor)
+	posts, err := h.service.GetFeed(userID, limit, offset)
 	
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"posts": posts,
-		"next_cursor": nextCursor,
-	})
+	hasMore := len(posts) == limit
+
+	c.JSON(http.StatusOK, gin.H{"posts": posts, "has_more": hasMore})
 } 

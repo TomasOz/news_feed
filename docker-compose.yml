@@ -9,10 +9,13 @@ services:
     environment:
       - DB_URL=${DB_URL}
       - JWT_SECRET=${JWT_SECRET}
+      - REDIS_ADDR=redis:6379
     depends_on:
       - db
+      - redis
     volumes:
       - ./migrations:/app/migrations
+    command: ["./news-feed", "-redis"]
   db:
     image: mysql:8.0
     container_name: news-feed-db
@@ -24,6 +27,16 @@ services:
       - "3307:3306"
     volumes:
       - db_data:/var/lib/mysql
+  redis:
+    image: redis:7-alpine
+    container_name: news-feed-redis
+    restart: always
+    ports:
+      - "6381:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
 
 volumes:
   db_data:
+  redis_data:

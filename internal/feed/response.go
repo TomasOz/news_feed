@@ -3,8 +3,8 @@ package feed
 import "news-feed/internal/post"
 
 type FeedResponse struct {
-    Posts      []post.Post 		   `json:"posts"`
-    NextCursor string              `json:"next_cursor"`
+    Posts    []post.Post `json:"posts"`
+    HasMore  bool        `json:"has_more"`
 }
 
 type ErrorResponse struct {

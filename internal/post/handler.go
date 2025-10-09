@@ -4,14 +4,17 @@ import (
 	"net/http"
 	"github.com/gin-gonic/gin"
 	"strconv"
+
+	"news-feed/internal/background_jobs"
 )
 
 type PostHandler struct {
-	service PostService
+	service 		PostService
+	fanoutWorker 	*background_jobs.FanoutWorker
 }
 
-func NewPostHandler(service PostService) *PostHandler {
-	return &PostHandler{service: service}
+func NewPostHandler(service PostService, fanoutWorker *background_jobs.FanoutWorker) *PostHandler {
+	return &PostHandler{service: service, fanoutWorker: fanoutWorker }
 }
 
 func (h *PostHandler) GetPostByID(c *gin.Context) {
@@ -67,6 +70,12 @@ func (h *PostHandler) CreatePost(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
+	go func() {
+		if err := h.fanoutWorker.FanoutToAllFollowers(post.ID, userID); err != nil {
+			println("Failed to fanout post:", err.Error())
+		}
+	}()
 
 	c.JSON(http.StatusOK, post)
 }

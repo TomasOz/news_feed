@@ -25,7 +25,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Returns the authenticated user's feed with optional limit and cursor.",
+                "description": "Returns the authenticated user's feed with optional limit and offset pagination.",
                 "consumes": [
                     "application/json"
                 ],
@@ -47,9 +47,11 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
-                        "type": "string",
-                        "description": "Cursor for next page",
-                        "name": "cursor",
+                        "minimum": 0,
+                        "type": "integer",
+                        "default": 0,
+                        "description": "Number of posts to skip",
+                        "name": "offset",
                         "in": "query"
                     }
                 ],
@@ -255,8 +257,8 @@ const docTemplate = `{
         "internal_feed.FeedResponse": {
             "type": "object",
             "properties": {
-                "next_cursor": {
-                    "type": "string"
+                "has_more": {
+                    "type": "boolean"
                 },
                 "posts": {
                     "type": "array",
