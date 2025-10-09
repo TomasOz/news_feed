@@ -18,7 +18,10 @@ I will use a stack that I’m not familiar with in my daily work.
 - **Web framework:** Gin
 - **ORM:** GORM  
 - **Database:** MySQL
+- **Cache:** Redis
+- **Background Jobs:** Go goroutines + channels
 - **Database Migrations:** golang-migrate
+- **Documentation:** Swagger
 - **Auth:** JWT  
 - **Containerization:** Docker & Docker Compose
 
