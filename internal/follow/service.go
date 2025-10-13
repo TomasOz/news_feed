@@ -43,7 +43,7 @@ func (p DefaultFollowService) Follow(follower_id, followee_id uint) (error) {
 
 func (p DefaultFollowService) UnFollow(follower_id, followee_id uint) (error) {
 	if follower_id == followee_id {
-		return errors.New("you can not follow yourself")
+		return errors.New("you can not unfollow yourself")
 	}
 	
 	err := p.repo.UnFollow(follower_id, followee_id)

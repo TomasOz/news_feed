@@ -12,6 +12,7 @@ I will use a stack that I’m not familiar with in my daily work.
 - Post creation (news updates)
 - Follow/unfollow other users
 - Fetch news feed from following users
+- Fanout post ids to fallowers redis cache
 
 ## Used Stack
 - **Language:** Golang
@@ -78,6 +79,7 @@ http://localhost:8080/swagger/index.html
 it would best to have cursor pagination
 - There should be followers cache also
 - Finish Swagger documentation
+- Finish Readme
 
 ## Author
 
