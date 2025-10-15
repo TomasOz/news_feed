@@ -32,3 +32,7 @@ func (r *RedisCache) LTrim(ctx context.Context, key string, start, stop int64) e
 	return r.client.LTrim(ctx, key, start, stop).Err()
 }
 
+func (r *RedisCache) Ping(ctx context.Context) error {
+	return r.client.Ping(ctx).Err()
+}
+

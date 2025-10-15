@@ -31,6 +31,8 @@ import (
 	"news-feed/internal/auth"
 	"news-feed/internal/cache"
 	"news-feed/internal/background_jobs"
+
+	"news-feed/internal/health"
 )
 
 func main() {
@@ -94,6 +96,10 @@ func main() {
 
 	// SWAGGER ===================================
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+
+	router.GET("/health", health.Health)
+
+	router.GET("/ready", health.Readiness(cacheClient, dbConn))
 
 	log.Println("Lets Start Application with Redis Caching and Background Jobs")
 	router.Run(":8080")
