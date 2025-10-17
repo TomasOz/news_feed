@@ -71,15 +71,14 @@ http://localhost:8080/swagger/index.html
 ## Future Plans
 - Add Redis caching (done)
 - Introduce background workers (done)
-- Add Swagger documentation (done)
-- Add Testing
+- Add Swagger documentation (implemented, but nod all done)
+- Add Testing (implemented, but definently not done)
+- Add Health endpoints (done)
 
 - Maybe lets think about solution, where feed would be deleted if it is read
 - At the moment /feed uses just simple limit=10&offset=10 in real world application
 it would best to have cursor pagination
 - There should be followers cache also
-- Finish Swagger documentation
-- Finish Readme
 
 ## Author
 
